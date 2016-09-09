@@ -58,7 +58,7 @@
 
 (def default-routes
   {"" index
-   "assets/" (->Resources {:prefix "public/"})})
+   "assets/" (->Resources {:prefix "assets/"})})
 
 (def base-routes ["/"])
 
