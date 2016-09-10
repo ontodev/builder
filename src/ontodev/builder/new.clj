@@ -25,7 +25,8 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
     (format "'[%s]" module-ns)
     (throw (RuntimeException. (format "'%s' is not an available default module" module-kw)))))
 
-(defn module-views [modules]
+(defn module-views
+  [modules]
   (into []
         (comp
           (map (fn [kw]

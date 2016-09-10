@@ -4,8 +4,7 @@
             [ring.util.response :refer [response]]
             [ontodev.builder.tasks.queue :as queue]
             [ontodev.builder.core :as core]
-            [ontodev.builder.utils :refer [edn-response]]
-            [ontodev.builder.js-utils :as js]))
+            [ontodev.builder.utils :refer [edn-response]]))
 
 (defn list-tasks
   []
@@ -38,8 +37,7 @@
   [{:keys [name doc argspec] :as task}]
   [:li
    [:a {:href "#"
-        :onclick (js/post {:url (str name "/run")
-                           :on-success (str "function(resp) {" js/reload "}")})} "RUN"]
+        :onclick (str "createTask('" name "');")} "RUN"]
    " "
    [:code name]
    [:p (-> doc (string/replace #"(?s)Keyword Args:.*" "") string/trim)]
@@ -52,15 +50,14 @@
    [:a {:href id} "RESULT"] [:code task]
    (when-not (future-done? result)
      [:p [:a {:href     "#"
-              :onclick (js/delete {:url        id
-                                   :on-success (str "function(resp) {" js/reload "}")})} "Cancel task"]])])
+              :onclick (str "cancelTask('" id "');")} "Cancel task"]])])
 
 (defn index
   [_]
   (response
    (core/template
     {:title "TASKS"
-     ;:js ["/assets/task.js"] ;; TODO: eventually actually have a js file instead of clojure js strings...
+     :js ["/assets/tasks.js"]
      :body [:div
             [:h2 "Available Tasks"]
             ;; TODO: clean up the looping logic here
