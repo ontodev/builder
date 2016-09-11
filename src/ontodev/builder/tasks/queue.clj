@@ -1,12 +1,16 @@
 (ns ontodev.builder.tasks.queue)
 
+;; TODO: potentially use mount for state management
 (def ran-tasks (atom {}))
 
 (defn add-task
   [{task-fn   :var
     task-name :name}]
-  (swap! ran-tasks assoc (System/currentTimeMillis) {:task   task-name
-                                                     :result (future (task-fn))}))
+  (if (and (fn? task-fn)
+           (string? task-name))
+    (swap! ran-tasks assoc (System/currentTimeMillis) {:task   task-name
+                                                       :result (future (task-fn))})
+    (throw (RuntimeException. "Malformed task attempted to be added"))))
 
 (defn drop-task
   [id]

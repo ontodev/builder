@@ -1,6 +1,6 @@
 (defproject ontodev/builder "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "BUILDer: Better User Interface for Linked Data ... er"
+  :url "https://github.com/ontodev/builder"
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [boot/core "2.6.0"]

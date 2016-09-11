@@ -29,9 +29,9 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
   [modules]
   (into []
         (comp
-          (map (fn [kw]
-                 (get-in default-modules [kw :views])))
-          (filter identity))
+         (map (fn [kw]
+                (get-in default-modules [kw :views])))
+         (filter identity))
         modules))
 
 (defn build-boot
@@ -70,5 +70,5 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
       (.mkdir (io/file name))
       (.mkdir (io/file name "src"))
       (spit (io/file name "README.md") (readme name))
-      (spit (io/file name "build.boot") (build-boot modules name ))
+      (spit (io/file name "build.boot") (build-boot modules name))
       (println (format "Created project directory '%s'" name)))))

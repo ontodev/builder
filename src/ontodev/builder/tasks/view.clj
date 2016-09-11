@@ -42,7 +42,7 @@
    [:code name]
    [:p (-> doc (string/replace #"(?s)Keyword Args:.*" "") string/trim)]
    ;[:pre (str argspec)]
-   ])
+])
 
 (defn executed-task-item
   [[id {:keys [task result]}]]
@@ -61,10 +61,10 @@
      :body [:div
             [:h2 "Available Tasks"]
             ;; TODO: clean up the looping logic here
-             (->> (list-tasks)
-                  (map task-item)
-                  (concat [:ul])
-                  vec)
+            (->> (list-tasks)
+                 (map task-item)
+                 (concat [:ul])
+                 vec)
             (when (not-empty @queue/ran-tasks)
               [:h2 "Executed Tasks"])
             (->> @queue/ran-tasks
@@ -77,7 +77,7 @@
    [:id]          {:get    get-ran-task                     ;; get the result of a task
                    :delete cancel-task}                     ;; delete a running task
    [:name "/run"] {:post   run-task}                        ;; run a task
-   })
+})
 
 (def config
   {:title "Tasks"
