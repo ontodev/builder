@@ -6,8 +6,10 @@
 (defn add-task
   [{task-fn   :var
     task-name :name}]
-  (if (and (fn? task-fn)
-           (string? task-name))
+  (if (and (ifn? task-fn)
+           (not (coll? task-fn))
+           (or (string? task-name)
+               (symbol? task-name)))
     (swap! ran-tasks assoc (System/currentTimeMillis) {:task   task-name
                                                        :result (future (task-fn))})
     (throw (RuntimeException. "Malformed task attempted to be added"))))

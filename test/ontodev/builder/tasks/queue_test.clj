@@ -32,7 +32,13 @@
     (is (thrown-with-msg? RuntimeException
                           #"Malformed task attempted to be added"
                           (add-task {:var  ""
-                                     :name nil})))))
+                                     :name nil}))))
+
+  (testing "Accept ifn as var params"
+    (is (add-task {:var #'first-tasks-key :name "asdf"})))
+
+  (testing "Accept symbol as task name"
+    (is (add-task {:var (fn [] "asdf") :name 'test-task}))))
 
 (deftest test-drop-task
   (testing "Drop the first task given its id"
