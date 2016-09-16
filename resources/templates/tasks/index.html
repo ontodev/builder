@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %} TASKS {% endblock %}
+
+{% block content %}
+
+<h2>Available Tasks</h2>
+<ul>
+    {% for task in tasks %}
+        <li>
+            <a href="#" onclick=createTask('{{ task.name }}');>
+                <code>{{ task.name }}</code>
+            </a>
+            <!-- TODO: args for tasks
+                 [:p (-> doc (string/replace #"(?s)Keyword Args:.*" "") string/trim)]
+                 ;[:pre (str argspec)]
+                 -->
+        </li>
+    {% endfor %}
+</ul>
+
+<a href="/tasks/executions">Testing - executions</a>
+
+{% endblock %}
+
+{% block additional-scripts %}
+{% script "/assets/tasks.js" %}
+{% endblock %}

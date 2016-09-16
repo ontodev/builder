@@ -1,9 +1,8 @@
 (ns ontodev.builder.tasks.view
-  (:require [clojure.string :as string]
-            [boot.task-helpers]
+  (:require [boot.task-helpers]
             [ring.util.response :refer [response]]
+            [ontodev.builder.layout :as layout]
             [ontodev.builder.tasks.queue :as queue]
-            [ontodev.builder.core :as core]
             [ontodev.builder.utils :refer [edn-response]]))
 
 (defn list-tasks
@@ -35,73 +34,30 @@
   [{{:keys [id]} :route-params}]
   (queue/cancel-execution (Long/parseLong id)))
 
-(defn get-ran-task
-  [{{:keys [id]} :route-params}]
-  (-> id
-      Long/parseLong
-      queue/get-execution
-      pr-str
-      edn-response))
-
-(defn task-item
-  "Given a single task, returns the list template for rendering."
-  [{:keys [name doc argspec] :as task}]
-  [:li
-   [:a {:href "#"
-        :onclick (str "createTask('" name "');")} "RUN"]
-   " "
-   [:code name]
-   [:p (-> doc (string/replace #"(?s)Keyword Args:.*" "") string/trim)]
-   ;[:pre (str argspec)]
-])
-
-(defn executed-task-item
-  "Given a single executed task item, returns
-   the list template for rendering."
-  [{id        :id
-    task-name :name
-    status    :status}]
-  [:li
-   [:code task-name]
-   [:span " - "]
-   (case status
-     :done
-     [:a
-      {:href id}
-      "RESULT"]
-
-     :pending
-     [:a
-      {:href    "#"
-       :onclick (str "cancelTask('" id "');")}
-      "CANCEL"]
-
-     :cancelled
-     [:span "CANCELLED"])])
-
 (defn index
   [_]
-  (response
-   (core/template
-    {:title "TASKS"
-     :js ["/assets/tasks.js"]
-     :body [:div
-            [:h2 "Available Tasks"]
-            [:ul
-             (map task-item (list-tasks))]
+  (layout/render "tasks/index.html" {:tasks (list-tasks)}))
 
-            (when (not-empty (queue/get-executions))
-              [:h2 "Executed Tasks"])
-            [:ul
-             (map executed-task-item (queue/get-executions))]]})))
+(defn executions
+  [_]
+  (layout/render "tasks/executions.html" {:executions (queue/get-executions)}))
+
+(defn task-executions
+  [{{task-name :name} :route-params}]
+  (layout/render "tasks/executions.html" {:executions (queue/get-task-executions task-name)
+                                          :task-name task-name}))
+
+(defn task-view
+  [{{:keys [id]} :route-params}]
+  (layout/render "tasks/execution.html" {:execution (queue/get-execution (Long/parseLong id))}))
 
 (def routes
-  {""                      index                            ;; view all tasks
-   "/executions"           index                            ;; view all executions
-   ["/executions/" :name]  index                            ;; view all executions of a task
-   [:id]          {:get    get-ran-task                     ;; view the status and, if applicable, result of a task
-                   :delete cancel-task}                     ;; cancel a running task
-   [:name "/run"] {:post   run-task}                        ;; run a task
+  {""                              index               ;; view all tasks
+   "executions"                    executions          ;; view all executions
+   ["executions/" :name]           task-executions     ;; view all executions of a task
+   ["execution/" :id]     {:get    task-view           ;; view the status and, if applicable, result of a task
+                           :delete cancel-task}        ;; cancel a running task
+   [:name "/run"]         {:post   run-task}           ;; run a task
 })
 
 (def config

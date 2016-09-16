@@ -47,6 +47,14 @@
        first
        show-execution))
 
+(defn get-task-executions
+  "Returns all executions for a task given its name"
+  [task-name]
+  (->> @execution-history
+       vals
+       (filter #(= (:name %) task-name))
+       (map show-execution)))
+
 (defn execute-task
   "Given a valid Boot task,
    if nothing else is currently executing,
@@ -72,9 +80,9 @@
        execution-history
        assoc
        id
-       {:id id
-        :name (:name task)
-        :f (future ((:var task)))})
+       {:id   id
+        :name (str (:name task))
+        :f    (future ((:var task)))})
       (get-execution id))))
 
 (defn cancel-execution
