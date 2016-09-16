@@ -7,33 +7,44 @@
             [ontodev.builder.utils :refer [edn-response]]))
 
 (defn list-tasks
+  "Returns a list of all possible tasks in the boot.user namespace."
   []
   (get (#'boot.task-helpers/available-tasks 'boot.user) 'boot.user))
 
 (defn get-task
+  "Given a task name, returns the first match by name of all
+   possible tasks."
   [task-name]
   (->> (list-tasks)
        (filter #(= (str (:name %)) task-name))
        first))
 
 (defn run-task
-  [{{:keys [name]} :route-params}]
-  (let [task      (get-task name)]
-    (queue/add-task task)))
+  "Given a valid task name, finds and exectues it in the queue.
+   Returns an empty string."
+  [{{task-name :name} :route-params}]
+  (let [task (get-task task-name)]
+    (queue/execute-task task)
+    ;; Bit hacky. Perhaps way to clean up/pass through task info
+    ;; Or just not return task on execute-task call
+    (response "")))
 
 (defn cancel-task
+  "Cancels a task given an id from the request route.
+   Returns nil."
   [{{:keys [id]} :route-params}]
-  (queue/cancel-task (Long/parseLong id)))
+  (queue/cancel-execution (Long/parseLong id)))
 
 (defn get-ran-task
   [{{:keys [id]} :route-params}]
   (-> id
       Long/parseLong
-      queue/get-task
+      queue/get-execution
       pr-str
       edn-response))
 
 (defn task-item
+  "Given a single task, returns the list template for rendering."
   [{:keys [name doc argspec] :as task}]
   [:li
    [:a {:href "#"
@@ -45,12 +56,28 @@
 ])
 
 (defn executed-task-item
-  [[id {:keys [task result]}]]
+  "Given a single executed task item, returns
+   the list template for rendering."
+  [{id        :id
+    task-name :name
+    status    :status}]
   [:li
-   [:a {:href id} "RESULT"] [:code task]
-   (when-not (future-done? result)
-     [:p [:a {:href     "#"
-              :onclick (str "cancelTask('" id "');")} "Cancel task"]])])
+   [:code task-name]
+   [:span " - "]
+   (case status
+     :done
+     [:a
+      {:href id}
+      "RESULT"]
+
+     :pending
+     [:a
+      {:href    "#"
+       :onclick (str "cancelTask('" id "');")}
+      "CANCEL"]
+
+     :cancelled
+     [:span "CANCELLED"])])
 
 (defn index
   [_]
@@ -60,22 +87,20 @@
      :js ["/assets/tasks.js"]
      :body [:div
             [:h2 "Available Tasks"]
-            ;; TODO: clean up the looping logic here
-            (->> (list-tasks)
-                 (map task-item)
-                 (concat [:ul])
-                 vec)
-            (when (not-empty @queue/ran-tasks)
+            [:ul
+             (map task-item (list-tasks))]
+
+            (when (not-empty (queue/get-executions))
               [:h2 "Executed Tasks"])
-            (->> @queue/ran-tasks
-                 (map executed-task-item)
-                 (concat [:ul])
-                 vec)]})))
+            [:ul
+             (map executed-task-item (queue/get-executions))]]})))
 
 (def routes
-  {""                      index
-   [:id]          {:get    get-ran-task                     ;; get the result of a task
-                   :delete cancel-task}                     ;; delete a running task
+  {""                      index                            ;; view all tasks
+   "/executions"           index                            ;; view all executions
+   ["/executions/" :name]  index                            ;; view all executions of a task
+   [:id]          {:get    get-ran-task                     ;; view the status and, if applicable, result of a task
+                   :delete cancel-task}                     ;; cancel a running task
    [:name "/run"] {:post   run-task}                        ;; run a task
 })
 

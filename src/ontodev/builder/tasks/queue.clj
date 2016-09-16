@@ -57,7 +57,7 @@
     (not (map? task))
     (throw (RuntimeException. "Task is malformed"))
 
-    (not (string? (:name task)))
+    (not (:name task))
     (throw (RuntimeException. "Task name not provided"))
 
     (not (ifn? (:var task)))
