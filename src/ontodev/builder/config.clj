@@ -1,4 +1,3 @@
-(ns ontodev.builder.config
-  (:require [mount.core :refer [args defstate]]))
+(ns ontodev.builder.config)
 
-(defstate env :start (args))
+(def config (atom {}))

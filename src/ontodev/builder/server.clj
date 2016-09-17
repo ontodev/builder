@@ -1,7 +1,6 @@
 (ns ontodev.builder.server
-  (:require [mount.core :as mount]
-            [ring.adapter.jetty]
-            [ontodev.builder.config :refer [env]]
+  (:require [ring.adapter.jetty]
+            [ontodev.builder.config :as config]
             [ontodev.builder.core :as core]))
 
 (defn validate-config
@@ -17,7 +16,7 @@
    and run a BUILDer server with those views."
   [config]
   (validate-config config)
-  (mount/start-with-args config #'ontodev.builder.config/env)
+  (reset! config/config config)
   (ring.adapter.jetty/run-jetty
-   (core/make-app env)
+   (core/make-app config)
    (get config :ring-options default-ring-options)))
