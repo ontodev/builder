@@ -1,9 +1,9 @@
 (ns ontodev.builder.tasks.view
-  (:require [clojure.string :as string]
-            [boot.task-helpers]
+  (:require [boot.task-helpers]
+            [hiccup.core :refer [html]]
             [ring.util.response :refer [response]]
+            [ontodev.builder.layout :as layout]
             [ontodev.builder.tasks.queue :as queue]
-            [ontodev.builder.core :as core]
             [ontodev.builder.utils :refer [edn-response]]))
 
 (defn list-tasks
@@ -35,73 +35,93 @@
   [{{:keys [id]} :route-params}]
   (queue/cancel-execution (Long/parseLong id)))
 
-(defn get-ran-task
-  [{{:keys [id]} :route-params}]
-  (-> id
-      Long/parseLong
-      queue/get-execution
-      pr-str
-      edn-response))
-
 (defn task-item
-  "Given a single task, returns the list template for rendering."
-  [{:keys [name doc argspec] :as task}]
+  [{task-name :name}]
   [:li
-   [:a {:href "#"
-        :onclick (str "createTask('" name "');")} "RUN"]
-   " "
-   [:code name]
-   [:p (-> doc (string/replace #"(?s)Keyword Args:.*" "") string/trim)]
+   [:a
+    {:href "#"
+     :onclick (str "createTask('" task-name "');")}
+    [:code task-name]]
+   [:p
+    [:a
+     {:href (str "executions/" task-name)}
+     "Executions"]]
+   ; TODO: arg for tasks
+   ;[:p (-> doc (string/replace #"(?s)Keyword Args:.*" "") string/trim)]
    ;[:pre (str argspec)]
-])
+   ])
 
-(defn executed-task-item
-  "Given a single executed task item, returns
-   the list template for rendering."
-  [{id        :id
-    task-name :name
-    status    :status}]
+(defn tasks-listing
+  []
+  [:div
+   [:h2 "Available Tasks"]
+   [:ul
+    (for [task (list-tasks)]
+      (task-item task))]
+   [:a {:href "/tasks/executions"} "Executions listing"]])
+
+(defn execution-item
+  [{id             :id
+    execution-name :name}]
   [:li
-   [:code task-name]
-   [:span " - "]
-   (case status
-     :done
-     [:a
-      {:href id}
-      "RESULT"]
+   [:a {:href (str "execution/" id)}
+    [:code execution-name]]])
 
-     :pending
-     [:a
-      {:href    "#"
-       :onclick (str "cancelTask('" id "');")}
-      "CANCEL"]
+(defn executions-listing
+  [executions & [task-name]]
+  [:div
+   [:h2 (if task-name
+          (str task-name " Executions")
+          "Executions")]
+   [:ul
+    (for [execution executions]
+      (execution-item execution))]
+   [:a {:href "/tasks/"} "Back"]])
 
-     :cancelled
-     [:span "CANCELLED"])])
+(defn execution-view
+  [{execution-name :name
+    status         :status
+    result         :result}]
+  [:div
+   [:h2 execution-name]
+   [:p (str "Status: " (name status))]
+   (when (= status :done)
+     [:div
+      [:h4 "Result"]
+      [:code result]])
+   [:a {:href "/tasks/"} "Back"]])
+
+(defn render-tasks-page
+  [title content]
+  (layout/render "tasks.html" {:title   title
+                               :content (html content)}))
 
 (defn index
   [_]
-  (response
-   (core/template
-    {:title "TASKS"
-     :js ["/assets/tasks.js"]
-     :body [:div
-            [:h2 "Available Tasks"]
-            [:ul
-             (map task-item (list-tasks))]
+  (render-tasks-page "TASKS" (tasks-listing)))
 
-            (when (not-empty (queue/get-executions))
-              [:h2 "Executed Tasks"])
-            [:ul
-             (map executed-task-item (queue/get-executions))]]})))
+(defn executions
+  [_]
+  (render-tasks-page "TASKS - Executions" (executions-listing (queue/get-executions))))
+
+(defn task-executions
+  [{{task-name :name} :route-params}]
+  (render-tasks-page (str task-name " - Executions")
+                     (executions-listing (queue/get-task-executions task-name) task-name)))
+
+(defn task-view
+  [{{:keys [id]} :route-params}]
+  (let [{:keys [name] :as execution} (queue/get-execution (Long/parseLong id))]
+    (render-tasks-page name
+                       (execution-view execution))))
 
 (def routes
-  {""                      index                            ;; view all tasks
-   "/executions"           index                            ;; view all executions
-   ["/executions/" :name]  index                            ;; view all executions of a task
-   [:id]          {:get    get-ran-task                     ;; view the status and, if applicable, result of a task
-                   :delete cancel-task}                     ;; cancel a running task
-   [:name "/run"] {:post   run-task}                        ;; run a task
+  {""                              index               ;; view all tasks
+   "executions"                    executions          ;; view all executions
+   ["executions/" :name]           task-executions     ;; view all executions of a task
+   ["execution/" :id]     {:get    task-view           ;; view the status and, if applicable, result of a task
+                           :delete cancel-task}        ;; cancel a running task
+   [:name "/run"]         {:post   run-task}           ;; run a task
 })
 
 (def config

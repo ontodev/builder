@@ -7,7 +7,8 @@
                  [ring/ring-jetty-adapter "1.5.0"]
                  [bidi "2.0.9"]
                  [markdown-clj "0.9.89"]
-                 [enlive "1.1.6"]])
+                 [selmer "1.0.7"]
+                 [hiccup "1.0.5"]])
 
 ;; TEST TASKS
 
