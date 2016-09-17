@@ -8,7 +8,8 @@
                  [bidi "2.0.9"]
                  [markdown-clj "0.9.89"]
                  [selmer "1.0.7"]
-                 [mount "0.1.10"]])
+                 [mount "0.1.10"]
+                 [hiccup "1.0.5"]])
 
 ;; TEST TASKS
 
