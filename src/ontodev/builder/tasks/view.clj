@@ -119,7 +119,7 @@
   {""                              index               ;; view all tasks
    "executions"                    executions          ;; view all executions
    ["executions/" :name]           task-executions     ;; view all executions of a task
-   ["execution/" :id]     {:get    task-view           ;; view the status and, if applicable, result of a task
+   ["execution/"  :id]    {:get    task-view           ;; view the status and, if applicable, result of a task
                            :delete cancel-task}        ;; cancel a running task
    [:name "/run"]         {:post   run-task}           ;; run a task
 })

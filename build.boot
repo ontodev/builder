@@ -8,20 +8,23 @@
                  [bidi "2.0.9"]
                  [markdown-clj "0.9.89"]
                  [selmer "1.0.7"]
-                 [hiccup "1.0.5"]])
+                 [hiccup "1.0.5"]
+                 [oauth-clj "0.1.15"]])
 
 ;; TEST TASKS
 
 ; Load BUILDer libraries
 (require '[ontodev.builder.builder :refer :all]
-         '[ontodev.builder.tasks.view])
+         '[ontodev.builder.tasks.view]
+         '[ontodev.builder.auth.view])
 
 ; Define the project
 (def builder-project
   {:organization "my-org"
    :project "my-project"
    :homepage "http://github.com/my-org/my-project"
-   :views [ontodev.builder.tasks.view/config]})
+   :views [ontodev.builder.tasks.view/config
+           ontodev.builder.auth.view/config]})
 
 (deftask build
   "Project-specific build task."
