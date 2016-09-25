@@ -23,6 +23,10 @@
   {:organization "my-org"
    :project "my-project"
    :homepage "http://github.com/my-org/my-project"
+   :auth-keys {:github-client-id nil
+               :github-client-secret nil
+               :google-client-id nil
+               :google-client-secret nil}
    :views [ontodev.builder.tasks.view/config
            ontodev.builder.auth.view/config]})
 
