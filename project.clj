@@ -11,4 +11,6 @@
                  [markdown-clj "0.9.89"]
                  [selmer "1.0.7"]
                  [hiccup "1.0.5"]
-                 [oauth-clj "0.1.15"]])
+                 [oauth-clj "0.1.15"]
+                 [environ "1.1.0"]
+                 [boot-environ "1.1.0"]])

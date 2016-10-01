@@ -45,7 +45,7 @@
 (defn init-github
   [req]
   (init github/oauth-authorization-url
-        (get-in @config [:auth-keys :github-client-id])
+        (:github-client-id @config)
         "github-callback"
         req))
 
@@ -53,8 +53,8 @@
   [req]
   (auth-user {:oauth-access-token github/oauth-access-token
               :oauth-client       github/oauth-client
-              :client-id          (get-in @config [:auth-keys :github-client-id])
-              :client-secret      (get-in @config [:auth-keys :github-client-secret])
+              :client-id          (:github-client-id @config)
+              :client-secret      (:github-client-secret @config)
               :suffix             "github-callback"
               :user-req           github-user-req}
              req))
@@ -64,7 +64,7 @@
 (defn init-google
   [req]
   (init google/oauth-authorization-url
-        (get-in @config [:auth-keys :google-client-id])
+        (:google-client-id @config)
         "google-callback"
         req))
 
@@ -72,8 +72,8 @@
   [req]
   (auth-user {:oauth-access-token google/oauth-access-token
               :oauth-client       google/oauth-client
-              :client-id          (get-in @config [:auth-keys :google-client-id])
-              :client-secret      (get-in @config [:auth-keys :google-client-secret])
+              :client-id          (:google-client-id @config)
+              :client-secret      (:google-client-secret @config)
               :suffix             "google-callback"
               :user-req           google-user-req}
              req))

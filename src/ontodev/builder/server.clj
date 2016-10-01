@@ -1,5 +1,6 @@
 (ns ontodev.builder.server
-  (:require [ring.adapter.jetty]
+  (:require [environ.core :refer [env]]
+            [ring.adapter.jetty]
             [ontodev.builder.config :as config]
             [ontodev.builder.core :as core]))
 
@@ -15,8 +16,9 @@
    save the views to the config atom,
    and run a BUILDer server with those views."
   [config]
-  (validate-config config)
-  (reset! config/config config)
-  (ring.adapter.jetty/run-jetty
-   (core/make-app config)
-   (get config :ring-options default-ring-options)))
+  (let [config (merge config env)]
+    (validate-config config)
+    (reset! config/config config)
+    (ring.adapter.jetty/run-jetty
+      (core/make-app config)
+      (get config :ring-options default-ring-options))))

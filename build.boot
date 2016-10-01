@@ -9,7 +9,10 @@
                  [markdown-clj "0.9.89"]
                  [selmer "1.0.7"]
                  [hiccup "1.0.5"]
-                 [oauth-clj "0.1.15"]])
+                 [oauth-clj "0.1.15"]
+                 [environ "1.1.0"]
+                 [boot-environ "1.1.0"]
+                 ])
 
 ;; TEST TASKS
 
@@ -23,10 +26,6 @@
   {:organization "my-org"
    :project "my-project"
    :homepage "http://github.com/my-org/my-project"
-   :auth-keys {:github-client-id nil
-               :github-client-secret nil
-               :google-client-id nil
-               :google-client-secret nil}
    :views [ontodev.builder.tasks.view/config
            ontodev.builder.auth.view/config]})
 

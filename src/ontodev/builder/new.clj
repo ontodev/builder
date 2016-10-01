@@ -37,7 +37,7 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
         modules))
 
 (defn build-boot
-  [modules name auth-keys]
+  [modules name]
   (format
    "(set-env!
   :resource-paths #{\"src\"}
@@ -48,19 +48,16 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
 
 (def builder-project
   {:project \"%s\"
-   :views %s
-   :auth-keys %s})
+   :views %s})
 "
    (apply str (map module-ns-str modules))
    name
-   (module-views modules)
-   (or auth-keys [])))
+   (module-views modules)))
 
 (boot/deftask new
   "Create a new BUILDer project."
   [n name NAME str "generated project name"
-   m modules MODULES edn "builder modules to include"
-   a auth-keys AUTHKEYS edn "authentication api keys to include"]
+   m modules MODULES edn "builder modules to include"]
   (cond
     (not (string? name))
     (throw (RuntimeException. "--name is required"))
@@ -71,13 +68,10 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
     (and modules (not (coll? modules)))
     (throw (RuntimeException. "--modules must be formatted as a collection"))
 
-    (and auth-keys (not (coll? auth-keys)))
-    (throw (RuntimeException. "--auth-keys must be formatted as a collection"))
-
     :else
     (do
       (.mkdir (io/file name))
       (.mkdir (io/file name "src"))
       (spit (io/file name "README.md") (readme name))
-      (spit (io/file name "build.boot") (build-boot modules name auth-keys))
+      (spit (io/file name "build.boot") (build-boot modules name))
       (println (format "Created project directory '%s'" name)))))
