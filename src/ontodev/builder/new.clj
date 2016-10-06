@@ -37,7 +37,7 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
         modules))
 
 (defn build-boot
-  [modules name]
+  [modules name auth-enabled?]
   (format
    "(set-env!
   :resource-paths #{\"src\"}
@@ -48,16 +48,19 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
 
 (def builder-project
   {:project \"%s\"
-   :views %s})
+   :views %s
+   :auth-enabled? %s})
 "
    (apply str (map module-ns-str modules))
    name
-   (module-views modules)))
+   (module-views modules)
+   auth-enabled?))
 
 (boot/deftask new
   "Create a new BUILDer project."
-  [n name NAME str "generated project name"
-   m modules MODULES edn "builder modules to include"]
+  [n name    NAME    str  "generated project name"
+   m modules MODULES edn  "builder modules to include"
+   a auth            bool "require authentication for common commands in built in modules"]
   (cond
     (not (string? name))
     (throw (RuntimeException. "--name is required"))
@@ -73,5 +76,5 @@ A new project using [BUILDer](http://github.com/ontodev/builder)."
       (.mkdir (io/file name))
       (.mkdir (io/file name "src"))
       (spit (io/file name "README.md") (readme name))
-      (spit (io/file name "build.boot") (build-boot modules name))
+      (spit (io/file name "build.boot") (build-boot modules name auth))
       (println (format "Created project directory '%s'" name)))))

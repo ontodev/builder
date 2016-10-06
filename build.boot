@@ -27,7 +27,8 @@
    :project "my-project"
    :homepage "http://github.com/my-org/my-project"
    :views [ontodev.builder.tasks.view/config
-           ontodev.builder.auth.view/config]})
+           ontodev.builder.auth.view/config]
+   :auth-enabled? false})
 
 (deftask build
   "Project-specific build task."

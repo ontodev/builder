@@ -1,10 +1,13 @@
 (ns ontodev.builder.tasks.view
-  (:require [boot.task-helpers]
-            [hiccup.core :refer [html]]
-            [ring.util.response :refer [response]]
-            [ontodev.builder.layout :as layout]
-            [ontodev.builder.tasks.queue :as queue]
-            [ontodev.builder.utils :refer [edn-response]]))
+  (:require
+    [bidi.ring :refer [->WrapMiddleware]]
+    [boot.task-helpers]
+    [hiccup.core :refer [html]]
+    [ring.util.response :refer [response]]
+    [ontodev.builder.layout :as layout]
+    [ontodev.builder.permissions :as permissions]
+    [ontodev.builder.tasks.queue :as queue]
+    [ontodev.builder.utils :refer [edn-response]]))
 
 (defn list-tasks
   "Returns a list of all possible tasks in the boot.user namespace."
@@ -114,7 +117,7 @@
   (let [{:keys [name] :as execution} (queue/get-execution (Long/parseLong id))]
     (render-tasks-page name
                        (execution-view execution))))
-
+;; TODO: add authentication middleware
 (def routes
   {""                              index               ;; view all tasks
    "executions"                    executions          ;; view all executions
