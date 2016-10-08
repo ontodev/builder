@@ -16,5 +16,6 @@
       (handler request)
       layout/error-403)))
 
+;; TODO: perhaps find a smarter way to create wrappers here so can avoid using bidi.ring/wrap-middleware
 (defn wrap-authenticated [handler] (auth-check handler :user))
 (defn wrap-admin [handler] (auth-check handler :admin))

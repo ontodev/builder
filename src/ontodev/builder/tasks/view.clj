@@ -1,6 +1,6 @@
 (ns ontodev.builder.tasks.view
   (:require
-    [bidi.ring :refer [->WrapMiddleware]]
+    [bidi.ring :refer [wrap-middleware]]
     [boot.task-helpers]
     [hiccup.core :refer [html]]
     [ring.util.response :refer [response]]
@@ -39,11 +39,11 @@
   (queue/cancel-execution (Long/parseLong id)))
 
 (defn task-item
-  [{task-name :name}]
+  [{task-name :name} admin?]
   [:li
    [:a
-    {:href "#"
-     :onclick (str "createTask('" task-name "');")}
+    {:href    "#"
+     :onclick (when admin? (str "createTask('" task-name "');"))}
     [:code task-name]]
    [:p
     [:a
@@ -55,30 +55,35 @@
    ])
 
 (defn tasks-listing
-  []
+  [admin?]
   [:div
    [:h2 "Available Tasks"]
    [:ul
     (for [task (list-tasks)]
-      (task-item task))]
+      (task-item task admin?))]
    [:a {:href "/tasks/executions"} "Executions listing"]])
 
 (defn execution-item
   [{id             :id
-    execution-name :name}]
+    execution-name :name
+    status         :status}
+   admin?]
   [:li
-   [:a {:href (str "execution/" id)}
-    [:code execution-name]]])
+   [:a {:href (str "/tasks/execution/" id)}
+    [:code execution-name]]
+   (when (= status :pending)
+     [:a {:href    "#"
+         :onclick (when admin? (str "cancelTask('" id "');"))}])])
 
 (defn executions-listing
-  [executions & [task-name]]
+  [executions admin? & [task-name]]
   [:div
    [:h2 (if task-name
           (str task-name " Executions")
           "Executions")]
    [:ul
     (for [execution executions]
-      (execution-item execution))]
+      (execution-item execution admin?))]
    [:a {:href "/tasks/"} "Back"]])
 
 (defn execution-view
@@ -100,34 +105,42 @@
                                :content (html content)}))
 
 (defn index
-  [_]
-  (render-tasks-page "TASKS" (tasks-listing)))
+  "View all tasks"
+  [req]
+  (render-tasks-page "TASKS" (tasks-listing (permissions/authorized? req :admin))))
 
 (defn executions
-  [_]
-  (render-tasks-page "TASKS - Executions" (executions-listing (queue/get-executions))))
+  "View all executions"
+  [req]
+  (render-tasks-page "TASKS - Executions" (executions-listing (queue/get-executions)
+                                                              (permissions/authorized? req :admin))))
 
 (defn task-executions
-  [{{task-name :name} :route-params}]
-  (render-tasks-page (str task-name " - Executions")
-                     (executions-listing (queue/get-task-executions task-name) task-name)))
+  "View all executions of a task"
+  [{:keys [route-params] :as req}]
+  (let [task-name (:name route-params)]
+    (render-tasks-page (str task-name " - Executions")
+                       (executions-listing (queue/get-task-executions task-name)
+                                           (permissions/authorized? req :admin)
+                                           task-name))))
 
 (defn task-view
+  "View the status and, if applicable, result of a task"
   [{{:keys [id]} :route-params}]
   (let [{:keys [name] :as execution} (queue/get-execution (Long/parseLong id))]
     (render-tasks-page name
                        (execution-view execution))))
-;; TODO: add authentication middleware
+
 (def routes
-  {""                              index               ;; view all tasks
-   "executions"                    executions          ;; view all executions
-   ["executions/" :name]           task-executions     ;; view all executions of a task
-   ["execution/"  :id]    {:get    task-view           ;; view the status and, if applicable, result of a task
-                           :delete cancel-task}        ;; cancel a running task
-   [:name "/run"]         {:post   run-task}           ;; run a task
-})
+  {""                    index
+   "executions"          executions
+   ["executions/" :name] task-executions
+   ["execution/" :id]    {:get    task-view
+                          :delete (wrap-middleware cancel-task permissions/wrap-admin)}
+   [:name "/run"]        {:post (wrap-middleware run-task permissions/wrap-admin)}
+   })
 
 (def config
-  {:title "Tasks"
-   :base "tasks/"
-   :routes routes})
+  {:title  "Tasks"
+   :base   "tasks/"
+   :routes (wrap-middleware routes permissions/wrap-authenticated)})
