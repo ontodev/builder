@@ -1,6 +1,7 @@
 (ns ontodev.builder.permissions
   (:require
-    [ontodev.builder.config :refer [config]]))
+    [ontodev.builder.config :refer [config]]
+    [ontodev.builder.layout :as layout]))
 
 (defn authorized?
   [{{:keys [user-id]} :session} form]
@@ -13,7 +14,7 @@
   (fn [request]
     (if (authorized? request form)
       (handler request)
-      (prn "UNAUTH"))))                                     ;;TODO, redirect to error page
+      layout/error-403)))
 
 (defn wrap-authenticated [handler] (auth-check handler :user))
 (defn wrap-admin [handler] (auth-check handler :admin))

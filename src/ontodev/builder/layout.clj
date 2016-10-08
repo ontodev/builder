@@ -15,7 +15,23 @@
   [template & [params]]
   (-> (parser/render-file
         template
-        (assoc params :page   template
+        (assoc params :page template
                       :config @config))
       response
       (content-type "text/html; charset=utf-8")))
+
+(defn error-page
+  "error-details should be a map containing the following keys:
+   :status - error status
+   :title - error title (optional)
+   :message - detailed error message (optional)
+
+   returns a response map with the error page as the body
+   and the status specified by the status key"
+  [error-details]
+  {:status  (:status error-details)
+   :headers {"Content-Type" "text/html; charset=utf-8"}
+   :body    (parser/render-file "error.html" error-details)})
+
+(def error-404 (error-page {:status 404 :title  "Page not found"}))
+(def error-403 (error-page {:status 403 :title "Forbidden access"}))

@@ -8,8 +8,10 @@
   (layout/render "home.html" {:readme (slurp "README.md")}))
 
 (def default-routes
-  {"" index
+  {""        index
    "assets/" (->Resources {:prefix "assets/"})})
+
+(def bidi-404-route [true (fn [_] layout/error-404)])
 
 (def base-routes ["/"])
 
@@ -19,6 +21,8 @@
   (->> config
        :views
        (map (juxt :base :routes))
+       (cons bidi-404-route)
+       reverse
        (into default-routes)
        (conj base-routes)
        make-handler
